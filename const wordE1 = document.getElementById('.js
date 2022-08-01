@@ -1,116 +1,116 @@
-const wordE1 = document.getElementById('word');
-const wrongLettersE1 = document.getElementById('wrong-letters');
-const playAgainBtn = document.getElementById('play-button');
-const popup = document.getElementById('popup-container');
-const notification = document.getElementById('notification-container');
-const finalMessage = document.getElementById('final-message');
-
-const figureParts= document.querySelectorAll(".figure-part");
-
-const words = ['application', 'programming', 'interface', 'wizard'];
-
-let selectedWord = words[Math.floor(Math.random() * words.length)];
-
-const correctLetters = [];
-const wrongLetters = [];
-
-//Show hidden word
-function displayWord(){
-    wordE1.innerHTML = `
-    ${selectedWord
-    .split('')
-    .map(
-        letter =>`
-        <span class="letter">
-        ${correctLetters.includes(letter) ? letter : ''}
-        </span>
-        `
-    )
-    .join('')}
-    `;
-
-    const innerWord = wordE1.innerText.replace(/\n/g, '');
-
-    if(innerWord === selectedWord){
-        finalMessage.innerText = 'Congratulations! You won! 😃';
-        popup.style.display= 'flex';
-    }
-}
-
-// Update the wrong letters
-function updateWrongLetterE1(){
-    //Display wrong letters
-    wrongLettersE1.innerHTML = `
-    ${wrongLetters.length > 0 ? '<p>Wrong</p>' : ''}
-    ${wrongLetters.map(letter => `<span>${letter}</span>`)}
-    `;
-
-    //Display parts
-    figureParts.forEach((part,index) => {
-        const errors = wrongLetters.length;
-
-        if(index < errors) {
-            part.style.display = 'block'
-        }
-        else{
-            part.style.display = 'none';
-        }
-    });
-
-    //Check if lost
-    if(wrongLetters.length === figureParts.length){
-        finalMessage.innerText = 'Unfortunately you lost. 😕';
-        popup.style.display = 'flex';
-    }
-}
-
-//Show notification
-function showNotification(){
-    notification.classList.add('show');
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 2000);
-}
-
-//Keydown letter press
-window.addEventListener('keydown', e =>{
-    if(e.keyCode >= 65 && e.keyCode <=90){
-        const letter = e.key;
-
-        if(selectedWord.includes(letter)){
-            if(!correctLetters.includes(letter)){
-                correctLetters.push(letter);
-
-                displayWord();
-            } else{
-                showNotification();
-            }
-        } else{
-            if(!wrongLetters.includes(letter)){
-                wrongLetters.push(letter);
-
-                updateWrongLetterE1();
-            } else{
-                showNotification();
-            }
-        }
-    }
-});
-
-//Restart game and play again
-playAgainBtn.addEventListener('click', () => {
-    //Empty arrays
-    correctLetters.splice(0);
-    wrongLetters.splice(0);
-
-    selectedWord = words[Math.floor(Math.random() * words.length)];
-
-    displayWord();
-
-    updateWrongLetterE1();
-
-    popup.style.display = 'none';
-});
-
-displayWord();
+let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';  
+const alphabet = document.getElementById('alphabet');  
+const passwordBoard = [  
+ 'A bad workman always blames his tools',  
+ 'A bird in hand is worth two in the bush',  
+ 'An apple a day keeps the doctor away',  
+ 'Better to wear out than to rust out',  
+ 'Don’t judge a book by its cover',  
+ 'Good things come to those who wait.',  
+ 'If you can’t beat them, join them',  
+ 'It’s no use crying over spilt milk',  
+];  
+const passwordDiv = document.querySelector('#board');  
+const imgDiv = document.querySelector('#hangin-dude');  
+const random = Math.floor(Math.random() * passwordBoard.length);  
+const password = passwordBoard[random];  
+const yes = new Audio('yes.wav');  
+const no = new Audio('no.wav');  
+const win = new Audio('nice-work.wav');  
+const lose = new Audio('oh-my-god-1.wav');  
+let fail = 1;  
+let countDown;  
+const start = function () {  
+ letters.split('').forEach(letter => {  
+  const html = `<div class="letter">${letter}</div>`;  
+  alphabet.insertAdjacentHTML('beforeend', html);  
+ });  
+ showPassword();  
+ showHangman(fail);  
+};  
+window.onload = start;  
+const passwordDashed = password.split('').map(letter => {  
+ if (letter === ' ') return ' ';  
+ else if (letter === '’') return '’';  
+ else if (letter === ',') return ',';  
+ else return '_';  
+});  
+const showPassword = function () {  
+ passwordDiv.innerHTML = passwordDashed.join('');  
+};  
+const showHangman = function (nr) {  
+ imgDiv.innerHTML = `<img src="img/${nr}.svg" alt="" />`;  
+};  
+const checkForLetter = function (e) {  
+ if (e.target.classList.contains('letter')) {  
+  if (password.toUpperCase().split('').includes(e.target.textContent)) {  
+   yes.play();  
+   password  
+    .toUpperCase()  
+    .split('')  
+    .forEach((letter, i, arr) => {  
+     if (letter === e.target.textContent) {  
+      passwordDashed[i] = letter;  
+      showPassword();  
+     }  
+    });  
+   deactivateLetter(true, e.target);  
+  } else {  
+   no.play();  
+   fail++;  
+   showHangman(fail);  
+   deactivateLetter(false, e.target);  
+  }  
+  if (fail == 6) {  
+   finish(false);  
+  }  
+  if (password.toUpperCase() === passwordDashed.join('')) {  
+   finish(true);  
+  }  
+ }  
+};  
+alphabet.addEventListener('click', checkForLetter);  
+const deactivateLetter = function (hit, letter, audio) {  
+ letter.style.border = hit  
+  ? '1px solid rgb(50, 177, 149)'  
+  : '1px solid rgba(255, 0, 0, 0.338)';  
+ letter.style.backgroundColor = hit  
+  ? 'rgb(50, 177, 149)'  
+  : 'rgba(255, 0, 0, 0.338)';  
+ letter.style.color = 'white';  
+ letter.style.cursor = 'default';  
+};  
+const finish = function (succes) {  
+ if (succes) {  
+  alphabet.innerHTML = `<h1>NICE WORK!</h1><div class='btn'>PLAY AGAIN</div>`;  
+  win.play();  
+  clearInterval(countDown);  
+ } else {  
+  alphabet.innerHTML = `<h1>YOU LOST!</h1><div class='btn'>TRY AGAIN</div>`;  
+  lose.play();  
+  clearInterval(countDown);  
+ }  
+ document  
+  .querySelector('.btn')  
+  .addEventListener('click', () => location.reload());  
+};  
+const timer = function () {  
+ const timer = document.querySelector('#timer');  
+ let time = new Date(60000);  
+ const options = {  
+  minute: '2-digit',  
+  second: '2-digit',  
+ };  
+ const tick = function () {  
+  time -= 1000;  
+  timer.textContent = Intl.DateTimeFormat('en-US', options).format(time);  
+  if (time == 0) {  
+   finish(false);  
+   clearInterval(countDown);  
+  }  
+ };  
+ tick();  
+ countDown = setInterval(tick, 1000);  
+ return countDown;  
+};  
+timer();  
